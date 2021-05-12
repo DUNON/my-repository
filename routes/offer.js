@@ -48,6 +48,48 @@ return res.json(newOffer);
     res.status(400).json({message:error.message});
 }
 });
-
+router.get("/offers",async(req,res)=>{
+    try {
+        const filters = {};
+        let page ;
+        let limit = Number(req.query.limit);
+        const sort ={}; 
+//Si le page:Number n'est pas transmis ou eagal a 0 on doit etre sur la 1er page
+        if (Number(req.query.page) <1) {
+            page = 1
+        } else {
+            page = Number(req.query.page)
+        };
+        if (req.query.title) {
+           filters.product_name = new RegExp(req.query.title,"i");
+        }
+        if (req.query.priceMin) {
+           filters.product_price = {$gte:Number(req.query.priceMin)};
+           //await Offer.find({ product_price: { $gte: 100 }});
+        }
+        if (req.query.priceMax) {
+            if (filters.priceMax) {
+                filters.product_price.$lte = Number(req.query.priceMax); 
+            }else{
+                filters.product_price = {$lte:Number(req.query.priceMax)}; 
+            }
+        }
+        if (req.query.sort==="price-asc") {
+            sort.product_price=1;
+        } else if (req.query.sort==="price-desc") {
+            sort.product_price=-1;
+        } 
+            
+            const offers = await offer.find(filters) // Dans un .find() on envoie toujours un OBJET
+            .populate("owner","account")
+            .limit(limit)
+            .skip(limit * page-1)
+            .sort(sort);// Dans un .sort() on envoie toujours un OBJET
+            res.json(offers);
+    
+    } catch (error) {
+        res.status(400).json({message:error.message});
+    }
+    });
 
 module.exports = router;
