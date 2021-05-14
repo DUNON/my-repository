@@ -6,7 +6,7 @@ const  offer = require("../models/offer");
 
 router.post("/offer/publish",isAuthenticated,async(req,res)=>{
 try {
-    //on va creer une offre
+    //CREATE on va creer une offre
     //Destructuring
     //const{title,description,price,condition,city,brand,size,color}=req.fields;
         const newOffer = new offer({
@@ -49,6 +49,7 @@ return res.json(newOffer);
 }
 });
 router.get("/offers",async(req,res)=>{
+    //READ
     try {
         const filters = {};
         let page ;
@@ -94,6 +95,7 @@ router.get("/offers",async(req,res)=>{
     });
 
 router.get("/offer/:id", async (req, res) =>{
+   
     try {
     const offers = await offer.findById(req.params.id)
     //const offers = await offer.find({_id:req.params.id})
@@ -101,6 +103,40 @@ router.get("/offer/:id", async (req, res) =>{
     res.json(offers);
     } catch (error) {
     res.status(400).json(error.message);    
+    }
+});
+
+router.put("/offer/update",isAuthenticated,async(req,res)=>{
+    //UPDATE
+    try {
+    const offerToUpdate=await offer.findById(req.fields.id);
+//si elle existe on peut la modifier sinon on renvoie un message d'erreur
+    if (offerToUpdate) {
+        if (req.fields.price) {
+            offerToUpdate.product_price = Number(req.fields.price);
+        }
+        if(req.fields.description){
+            offerToUpdate.product_description = req.fields.description;
+        }
+        if (req.fields.title) {
+            offerToUpdate.product_name = req.fields.title;
+        }
+    await offerToUpdate.save();
+    res.status(200).json({message: "Product updated !"});
+    } else {
+        res.status(401).json({message: "the offer doesn't exist"});
+    }
+} catch (error) {
+    res.status(400).json(error.message);
+}
+});
+
+router.delete("/offer/delete/:id",isAuthenticated,async(req,res)=>{
+    try {
+        const offerToDelete = await offer.findByIdAndDelete(req.params.id);
+        res.status(200).json({ message: "Product deleted" });
+    } catch (error) {
+        res.status(400).json(error.message);
     }
 });
 module.exports = router;
