@@ -83,8 +83,9 @@ router.get("/offers",async(req,res)=>{
             const offers = await offer.find(filters) // Dans un .find() on envoie toujours un OBJET
             .populate("owner","account")
             .limit(limit)
-            .skip(limit * page-1)
+            .skip(limit * (page-1))
             .sort(sort);// Dans un .sort() on envoie toujours un OBJET
+            //.select("product_name product_price")
             res.json(offers);
     
     } catch (error) {
@@ -92,4 +93,14 @@ router.get("/offers",async(req,res)=>{
     }
     });
 
+router.get("/offer/:id", async (req, res) =>{
+    try {
+    const offers = await offer.findById(req.params.id)
+    //const offers = await offer.find({_id:req.params.id})
+    .populate("owner","account");
+    res.json(offers);
+    } catch (error) {
+    res.status(400).json(error.message);    
+    }
+});
 module.exports = router;
